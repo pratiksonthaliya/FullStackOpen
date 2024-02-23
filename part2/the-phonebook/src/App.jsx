@@ -3,6 +3,7 @@ import Persons from "./components/Persons";
 import PersonForm from "./components/PersonForm";
 import Filter from "./components/Filter";
 import axios from "axios";
+import personService from "./services/persons";
 
 function App() {
   // const [persons, setPersons] = useState([
@@ -16,9 +17,9 @@ function App() {
   const [persons, setPersons] = useState([]);
 
   useState(() => {
-    axios.get("http://localhost:3001/persons").then((res) => {
-      console.log(res.data);
-      setPersons(res.data);
+    personService.getAll().then((initialPersons) => {
+      // console.log(res.data);
+      setPersons(initialPersons);
     });
   }, []);
 
@@ -60,14 +61,41 @@ function App() {
 
     for (let i = 0; i < persons.length; i++) {
       if (persons[i].name === newName) {
-        alert(`${newName} is already added to phonebook`);
+        // alert(`${newName} is already added to phonebook`);
+        if (
+          window.confirm(
+            `${newName} is already added to phonebook, replace the old number with new one`
+          )
+        ) {
+          axios
+            .put(`http://localhost:3001/persons/${persons[i].id}`, newObject)
+            .then((response) => {
+              console.log(response);
+              const personsNew = persons.filter(
+                (person) => person !== newObject
+              );
+              console.log(personsNew.concat(newObject));
+            });
+        }
         return;
       }
     }
 
-    setPersons(persons.concat(newObject));
-    setNewName("");
-    setNewNumber("");
+    personService.create(newObject).then((newPerson) => {
+      setPersons(persons.concat(newPerson));
+      setNewName("");
+      setNewNumber("");
+    });
+  };
+
+  const deleteHandler = (id) => {
+    const personToDel = persons.find((person) => person.id === id);
+    if (window.confirm(`Delete ${personToDel.name}`)) {
+      axios.delete(`http://localhost:3001/persons/${id}`).then((response) => {
+        console.log(response.data);
+        setPersons(persons.filter((person) => person !== response.data));
+      });
+    }
   };
 
   return (
@@ -84,7 +112,7 @@ function App() {
         newNumber={newNumber}
       />
       <h2>Numbers</h2>
-      <Persons personToShow={personToShow} />
+      <Persons personToShow={personToShow} deleteHandler={deleteHandler} />
     </div>
   );
 }
