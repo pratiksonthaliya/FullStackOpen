@@ -5,6 +5,8 @@ import Filter from "./components/Filter";
 import axios from "axios";
 import personService from "./services/persons";
 
+let global = 10;
+
 function App() {
   // const [persons, setPersons] = useState([
   //   { name: "Pratik Sonthaliya", number: "123456789" },
@@ -15,13 +17,15 @@ function App() {
   // ]);
 
   const [persons, setPersons] = useState([]);
+  const [newMembMessage, setNewMembMessage] = useState(null);
+  const [newErrorMessage, setNewErrorMessage] = useState(null);
 
   useState(() => {
     personService.getAll().then((initialPersons) => {
       // console.log(res.data);
       setPersons(initialPersons);
     });
-  }, []);
+  }, [persons]);
 
   const [newName, setNewName] = useState("");
   const [newNumber, setNewNumber] = useState("");
@@ -53,10 +57,12 @@ function App() {
   };
 
   const addNumber = (event) => {
+    global = global + 1;
     event.preventDefault();
     const newObject = {
       name: newName,
       number: newNumber,
+      id: `${global}`,
     };
 
     for (let i = 0; i < persons.length; i++) {
@@ -70,29 +76,43 @@ function App() {
           axios
             .put(`http://localhost:3001/persons/${persons[i].id}`, newObject)
             .then((response) => {
-              console.log(response);
+              // console.log(response);
               const personsNew = persons.filter(
                 (person) => person !== newObject
               );
-              console.log(personsNew.concat(newObject));
+              setPersons(personsNew.concat(newObject));
+              setNewMembMessage(`Added ${newObject.name}`);
+            })
+            .catch((error) => {
+              setNewErrorMessage(
+                `Information of ${newObject.name} has already been removed from the server`
+              );
             });
         }
         return;
       }
     }
 
-    personService.create(newObject).then((newPerson) => {
-      setPersons(persons.concat(newPerson));
-      setNewName("");
-      setNewNumber("");
-    });
+    personService
+      .create(newObject)
+      .then((newPerson) => {
+        setPersons(persons.concat(newPerson));
+        setNewMembMessage(`Added ${newPerson.name}`);
+        setNewName("");
+        setNewNumber("");
+      })
+      .catch((error) => {
+        setNewErrorMessage(
+          `Information of ${newObject.name} has already been removed from the server`
+        );
+      });
   };
 
   const deleteHandler = (id) => {
     const personToDel = persons.find((person) => person.id === id);
     if (window.confirm(`Delete ${personToDel.name}`)) {
       axios.delete(`http://localhost:3001/persons/${id}`).then((response) => {
-        console.log(response.data);
+        // console.log(response.data);
         setPersons(persons.filter((person) => person !== response.data));
       });
     }
@@ -100,6 +120,8 @@ function App() {
 
   return (
     <div>
+      <Notification message={newMembMessage} />
+      <ErrorMessage message={newErrorMessage} />
       <h1>Phonebook</h1>
       <Filter searchVal={searchValue} handleFilter={handleFilter} />
 
@@ -116,5 +138,19 @@ function App() {
     </div>
   );
 }
+
+const Notification = ({ message }) => {
+  if (message === null) {
+    return null;
+  }
+  return <div className="newMemb">{message}</div>;
+};
+
+const ErrorMessage = ({ message }) => {
+  if (message === null) {
+    return null;
+  }
+  return <div className="error">{message}</div>;
+};
 
 export default App;
