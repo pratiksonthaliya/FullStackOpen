@@ -2,18 +2,25 @@ import { useState } from "react";
 import Persons from "./components/Persons";
 import PersonForm from "./components/PersonForm";
 import Filter from "./components/Filter";
-// import reactLogo from './assets/react.svg'
-// import viteLogo from '/vite.svg'
-// import './App.css'
+import axios from "axios";
 
 function App() {
-  const [persons, setPersons] = useState([
-    { name: "Pratik Sonthaliya", number: "123456789" },
-    { name: "Adarsh Kumar", number: "987654321" },
-    { name: "Vikash Kumar", number: "567891234" },
-    { name: "Arto Hellas", number: "040-123456" },
-    { name: "Ada Lovelace", number: "39-44-5323523" },
-  ]);
+  // const [persons, setPersons] = useState([
+  //   { name: "Pratik Sonthaliya", number: "123456789" },
+  //   { name: "Adarsh Kumar", number: "987654321" },
+  //   { name: "Vikash Kumar", number: "567891234" },
+  //   { name: "Arto Hellas", number: "040-123456" },
+  //   { name: "Ada Lovelace", number: "39-44-5323523" },
+  // ]);
+
+  const [persons, setPersons] = useState([]);
+
+  useState(() => {
+    axios.get("http://localhost:3001/persons").then((res) => {
+      console.log(res.data);
+      setPersons(res.data);
+    });
+  }, []);
 
   const [newName, setNewName] = useState("");
   const [newNumber, setNewNumber] = useState("");
