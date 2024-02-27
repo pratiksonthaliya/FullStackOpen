@@ -1,9 +1,12 @@
 const express = require("express");
 const morgan = require("morgan");
+const cors = require("cors");
 
 const app = express();
 
+app.use(cors());
 app.use(express.json());
+app.use(express.static("dist"));
 
 app.use(
   morgan((tokens, req, res) => {
@@ -43,8 +46,6 @@ let persons = [
   },
 ];
 
-app.use(express.json());
-
 app.get("/api/persons", (req, res) => {
   res.json(persons);
 });
@@ -58,7 +59,7 @@ app.get("/api/persons/:id", (req, res) => {
   res.status(404).send("Person not there");
 });
 
-app.delete("/api/perons/:id", (req, res) => {
+app.delete("/api/persons/:id", (req, res) => {
   const id = Number(req.params.id);
   const newPersons = persons.filter((person) => person.id !== id);
   persons = newPersons;
@@ -98,4 +99,8 @@ app.get("/info", (req, res) => {
     `);
 });
 
-app.listen(3001);
+const PORT = process.env.PORT || 3001;
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
