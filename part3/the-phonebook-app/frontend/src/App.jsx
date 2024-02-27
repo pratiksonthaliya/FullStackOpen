@@ -1,3 +1,5 @@
+/* eslint-disable react/prop-types */
+/* eslint-disable no-unused-vars */
 import { useState } from "react";
 import Persons from "./components/Persons";
 import PersonForm from "./components/PersonForm";
@@ -73,12 +75,11 @@ function App() {
             `${newName} is already added to phonebook, replace the old number with new one`
           )
         ) {
-          axios
-            .put(`http://localhost:3001/persons/${persons[i].id}`, newObject)
-            .then((response) => {
+          personService
+          .update(newObject).then((response) => {
               // console.log(response);
               const personsNew = persons.filter(
-                (person) => person !== newObject
+                (person) => person.name !== newName
               );
               setPersons(personsNew.concat(newObject));
               setNewMembMessage(`Added ${newObject.name}`);
@@ -111,9 +112,8 @@ function App() {
   const deleteHandler = (id) => {
     const personToDel = persons.find((person) => person.id === id);
     if (window.confirm(`Delete ${personToDel.name}`)) {
-      axios.delete(`http://localhost:3001/persons/${id}`).then((response) => {
-        // console.log(response.data);
-        setPersons(persons.filter((person) => person !== response.data));
+      personService.remove(id).then(() => {
+        setPersons(persons => persons.filter((person) => person.id !== id));
       });
     }
   };
